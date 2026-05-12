@@ -105,3 +105,19 @@ If a session dies ("prompt too long") or you start a new session to continue wor
 2. Read the full state file for context
 3. Read the partially-completed file(s) listed in the state
 4. Continue from the next incomplete section or task
+
+## Code Rollback 代碼回退流程
+
+代碼改壞時的處理順序：
+
+1. **確認範圍** — `git diff` 看清楚改了什麼
+2. **單檔回退** — `git checkout HEAD -- path/to/file`（安全，不影響其他檔案）
+3. **多檔回退** — 告知用戶，由用戶在終端手動執行 `git reset --hard HEAD`
+   （settings.json 封鎖此指令，需用戶主動批准，屬有意設計）
+4. **禁止**：用 `--no-verify` 繞過 hooks 強行 commit
+
+### tools/ 腳本特別注意
+
+`tools/` 下的腳本（watchdog.py、watcher 系列）透過 Task Scheduler 持續運行。
+改動前先在對話中記錄當前狀態；改壞後若 watchdog 無法啟動，
+回退步驟同上，或由用戶在 Task Scheduler 手動重啟服務。

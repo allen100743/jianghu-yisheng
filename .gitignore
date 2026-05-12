@@ -153,5 +153,6 @@ tools/qingxia_log.md
 tools/jingyi_log.md
 tools/.watchdog.lock
 tools/telegram_images/
+tools/local_config.py
 tools/qingxia_tasks/STOP
 production/session-state/

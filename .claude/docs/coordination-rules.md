@@ -71,3 +71,17 @@ When an orchestration skill spawns multiple independent agents:
 2. Collect all results before proceeding to dependent phases
 3. If any agent is BLOCKED, surface it immediately — do not silently skip
 4. Always produce a partial report if some agents complete and others block
+
+## Worktree 隔離紀律
+
+使用 Agent 工具時，以下情況傳入 `isolation: "worktree"`：
+
+| 情況 | 說明 |
+|------|------|
+| 修改 `tools/` 腳本 | watchdog.py 等為生產服務，改壞即線上斷線 |
+| 多方案實作對比 | 不確定哪種方案更好時先隔離實驗 |
+| 高風險重構 | 涉及多檔、難以逐步回退的改動 |
+
+**不需要** worktree：設計文件（.md）、唯讀研究、單行小修改。
+
+Worktree 由 Agent 工具自動建立與清理；若 Agent 無改動，分支自動丟棄。

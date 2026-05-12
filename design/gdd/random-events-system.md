@@ -1,5 +1,5 @@
 # 江湖一生 — 隨機事件系統 GDD
-*策劃：陳品霖 | 版本：v1.1 | 狀態：修訂中 | 2026-05-12*
+*策劃：陳品霖 | 版本：v1.1 | 審核：怡嘉 | 狀態：已審核 | 2026-05-12*
 *系統編號：#20 | 層級：Feature（Vertical Slice）*
 *設計方法：情境先行 — 20情境→7屬性→規格*
 *依賴系統：#14 NPC行為、#15 NPC關係、#16 世界感知、#1 時間與老化、#19 任務系統、#47 身份印刻（待設計）*
@@ -208,6 +208,29 @@ severity = clamp(raw, 0.0, 1.0)
 
 > **效能說明（R4）：** MVP 實例池上限 50，ConditionTree 最多 4 種葉節點，每遊戲小時最多評估 50×4 = 200 次條件判定，在 Godot 4.6 GDScript 下可在 1 ms 內完成，不構成效能瓶頸。V2 擴容到 500 實例 + 8 種葉節點前，需先做效能 benchmark。
 
+#### V2 葉節點詳細規格（#47 身份印刻完成後啟用）
+
+| 節點類型 | 觸發邏輯 | 參數格式 | 與 MVP 節點差異 |
+|---------|---------|---------|--------------|
+| `identity_check` | 檢測角色是否持有特定身份印刻（血誓、門派烙印、朝廷密令等），印刻由 #47 系統賦予 | `{ target, identity_type, required_level, check_mode: "exact|partial" }` | MVP 僅支援簡單門派 ID 標記；V2 支援多重印刻疊加、等級判定與部分匹配 |
+| `world_state_check` | 判定全局或地區世界狀態是否滿足條件，如「中原戰亂>3」「某門派聲望≥500」 | `{ scope: "global|region|scene", variable, operator: "eq|ne|gt|lt", value, modifier: ["season","weather"] }` | MVP 僅支援單一全局等於判定；V2 引入運算符、區域範圍與季節/天氣修飾詞 |
+| `secret_known_check` | 檢查角色是否知曉特定江湖秘密，可含虛假情報標記 | `{ secret_id, knowledge_state: "known|unknown|partial|distorted", source: "any|npc_id", last_verified: timestamp }` | MVP 無秘密系統；V2 配合 #48 秘密模組，支援部分知情與扭曲記憶 |
+| `npc_goal_check` | 判定 NPC 當前目標是否與事件條件吻合，如「護送目標是否已達終點」 | `{ npc_id, goal_type: "escort|hunt|gather|defend|betray", status: "active|completed|failed", progress_min, progress_max }` | MVP 僅檢查 NPC 位置/血量；V2 直接對接 NPC 行為樹目標狀態，支援進度區間 |
+
+#### 因果鏈防迴圈機制（chain_depth > 1 時啟用）
+
+**chain_depth 遞增防護：**
+- 每個因果鏈節點生成時記錄鏈路深度 `chain_depth`（首發=0，每傳一代+1）
+- 若某節點嘗試引導至深度 > 50 的後續事件，觸發「淵渟嶽峙」保護：該鏈路立即中斷，記錄 `CHAIN_ABYSS` 日誌
+- 帶 `infinite_allowed` 標記的循環劇情節點，深度上限提升至 200
+
+**環檢測規則：**
+- 系統維護全局哈希表 `chain_visited`，以 `(event_id, chain_id)` 為鍵
+- 新節點觸發時，檢查其 `prev_event_id` 是否出現在當前鏈路的回溯列表中
+- **一般環**：強行斷開，將該節點視為獨立事件（不繼承前因後果）
+- **天命環**（帶 `mandatory_loop` 標記）：允許閉環，但每次循環必須改變至少一個世界狀態變量，否則仍視為死循環中斷
+- 環檢測在 `OnEventPrepare` 預處理階段執行，不影響運行時效能
+
 ---
 
 ### 3.3 信息迷霧與事件感知
@@ -246,6 +269,18 @@ severity = clamp(raw, 0.0, 1.0)
 - 時空節點強制觸發（severity = 1.0，無視冷卻）
 - 多個門派 NPC 齊聚，事件分支影響江湖聲望與身份印刻
 - 屬性：節點、印刻、張力
+
+#### 時空節點強制觸發與 max_instances 衝突解決規則
+
+| 優先級 | 情境 | 處理方式 |
+|--------|------|---------|
+| **最高** | 帶 `mandatory=true` 的時空節點強制觸發 | 無視 max_instances 直接生成；超出上限時自動終止最早生成的非強制實例 |
+| **次高** | 時空約束觸發但無 mandatory 標記 | 比較新舊事件 `importance` 權重（0-100）；新事件權重較高則替換最低權重現有實例；較低則進入 `pending_queue`，最多等待 300 遊戲秒，超時強制丟棄 |
+| **保護** | 同場景多個強制事件疊加 | 觸發「江湖震盪」保護：暫停所有 `core=false` 事件，按剩餘 TTL 優先終止最短者，直至實例數降至 max_instances × 80% |
+
+**強制觸發中斷規則：**
+- 目標 NPC/場景處於可中斷事件（`interruptible=true`）中：中斷並存檔至 `suspended_events`，強制事件結束後恢復
+- 目標處於不可中斷事件（決鬥、傳功等）中：延遲至該事件結束後立即觸發，最長等待 120 遊戲秒，超時記錄 `FORCED_SKIP`
 
 ---
 

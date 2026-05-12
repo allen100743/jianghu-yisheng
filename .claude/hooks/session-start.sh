@@ -72,4 +72,34 @@ if [ -f "$STATE_FILE" ]; then
 fi
 
 echo "==================================="
+
+# --- 情報部門：顯示最新情報簡報 ---
+INTEL_DIR="design/intelligence"
+if [ -d "$INTEL_DIR" ]; then
+    LATEST=$(ls "$INTEL_DIR"/*.md 2>/dev/null | sort | tail -1)
+    if [ -n "$LATEST" ]; then
+        TODAY=$(date +%Y-%m-%d)
+        REPORT_DATE=$(basename "$LATEST" .md)
+        echo ""
+        echo "=== 情報部門簡報：$REPORT_DATE ==="
+        if [ "$REPORT_DATE" = "$TODAY" ]; then
+            echo "今日報告已就緒"
+        else
+            echo "最新報告（$REPORT_DATE）"
+        fi
+        echo ""
+        cat "$LATEST"
+        echo "=== 簡報結束 — 請確認後告知怡嘉是否需要跟進 ==="
+    fi
+fi
+
+# --- 製作人 Telegram 筆記 ---
+NOTES_FILE="tools/telegram_notes.md"
+if [ -f "$NOTES_FILE" ] && [ -s "$NOTES_FILE" ]; then
+    echo ""
+    echo "=== 📱 製作人 Telegram 筆記（待處理）==="
+    cat "$NOTES_FILE"
+    echo "=== 筆記結束 — 處理完畢後可清空此文件 ==="
+fi
+
 exit 0

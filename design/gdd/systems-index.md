@@ -40,7 +40,7 @@
 | 6 | 天賦系統 | Core | 2, 5 | ✅ GDD 完成（talent-system.md）| |
 | 7 | 武功修煉系統 | Core | 1, 2 | ✅ GDD 完成（Ch5）| |
 | 8 | 武學技能系統 | Core | 2 | ✅ GDD 完成 v2（martial-arts-system.md）| |
-| 43 | 傷勢與狀態效果系統 | Core | 1, 2, 11 | ✅ GDD 完成+審查（status-effects-system.md）\| 審查：2026-05-12 MAJOR REVISION → 修復中，待二次確認 | |
+| 43 | 傷勢與狀態效果系統 | Core | 1, 2, 11 | ✅ GDD 已審核 v2.1（status-effects-system.md）\| 怡嘉審核：2026-05-12，補齊後遺症機制、疾病倒數量化、非必要NPC標準 | |
 | 44 | 武俠抗性體系 | Core | 2, 43 | ✅ GDD 完成（resistance-system.md）| |
 | 45 | 性格特質系統 | Core | 2, 5 | ✅ GDD 完成（personality-system.md）| |
 | 9 | 裝備系統 | Core | 2 | ✅ GDD 完成（Ch6）| |
@@ -65,7 +65,7 @@
 |---|---------|------|------|---------|
 | 18 | 成就/稱號系統 | Feature | 2, 17, 15 | ✅ GDD 完成（Ch5）|
 | 19 | 任務系統 | Feature | 14, 12, 15, 16 | ✅ GDD 已審核 v3.0（task-system.md）\| 怡嘉審核：2026-05-12，E11 決定：道具留在玩家身上 |
-| 20 | 隨機事件系統 | Feature | 1, 10, 14, 47 | 🔄 修訂中 v1.1（random-events-system.md）\| 審查：2026-05-12 NEEDS REVISION → 3 項阻擋已修復，待確認 |
+| 20 | 隨機事件系統 | Feature | 1, 10, 14, 47 | ✅ GDD 已審核 v1.1（random-events-system.md）\| 怡嘉審核：2026-05-12，補齊V2葉節點定義、防迴圈機制、時空衝突規則 |
 | 21 | 事件敘事系統 | Feature | 15, 20, 47 | ✅ GDD 已審核 v1.0（narrative-event-system.md）\| 怡嘉審核：2026-05-12 |
 | 27 | 關係網絡 UI | Presentation | 15 | 🔲 未開始 |
 | 30 | 通知/提示系統 | Presentation | 16, 20 | 🔲 未開始 |

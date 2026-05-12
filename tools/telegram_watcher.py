@@ -10,6 +10,19 @@ sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='repla
 
 import json
 import os
+
+# 載入本地設定（local_config.py 優先，env var 次之）
+try:
+    import sys as _sys, os as _os
+    _sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+    from local_config import TELEGRAM_TOKEN as _LC_TG, TELEGRAM_CHAT_ID as _LC_CID, DEEPSEEK_API_KEY as _LC_DS
+    import os as _osenv
+    if not _osenv.environ.get('TELEGRAM_TOKEN'): _osenv.environ['TELEGRAM_TOKEN'] = _LC_TG
+    if not _osenv.environ.get('TELEGRAM_CHAT_ID'): _osenv.environ['TELEGRAM_CHAT_ID'] = _LC_CID
+    if not _osenv.environ.get('DEEPSEEK_API_KEY'): _osenv.environ['DEEPSEEK_API_KEY'] = _LC_DS
+except ImportError:
+    pass
+
 import time
 import urllib.request
 import urllib.error
@@ -35,6 +48,17 @@ CONTEXT_DIR   = os.path.join(SCRIPT_DIR, "qingxia_context")
 
 POLL_INTERVAL = 5   # 每5秒輪詢一次
 MAX_HISTORY   = 30  # 保留最近幾條對話
+
+
+WEB_REPLY_FILE = os.path.join(SCRIPT_DIR, "web_reply.md")
+
+def _write_web_reply(text: str):
+    """網頁輸入的回覆寫到 web_reply.md，由 Next.js API 輪詢讀取"""
+    try:
+        with open(WEB_REPLY_FILE, "w", encoding="utf-8") as f:
+            f.write(text)
+    except Exception as e:
+        print(f"寫入 web_reply.md 失敗：{e}")
 
 
 def load_project_context() -> str:
@@ -230,6 +254,7 @@ def check_incoming() -> str:
 
 def handle_message(message: str):
     """處理一則訊息：青霞優先，失敗才移交怡嘉"""
+    is_web = message.startswith("[WEB]") or "[WEB]" in message
     clean_msg = message
     for prefix in ("[TG]", "[WEB]"):
         clean_msg = clean_msg.replace(prefix, "").strip()
@@ -271,14 +296,20 @@ def handle_message(message: str):
     if success and reply.startswith("[ESCALATE]"):
         escalate_msg = reply[len("[ESCALATE]"):].strip()
         print(f"青霞主動移交：{escalate_msg[:60]}")
-        send_telegram("這個需要怡嘉在 VS Code 處理，稍等。")
+        if is_web:
+            _write_web_reply("這個問題需要怡嘉在 VS Code 處理，請稍候...")
+        else:
+            send_telegram("這個需要怡嘉在 VS Code 處理，稍等。")
         notify_claude_code(message, escalation_reason=f"青霞移交：{escalate_msg[:40]}")
         return
 
     # 失敗，移交怡嘉
     if not success:
         print(f"青霞兩次失敗（{reason}），移交怡嘉")
-        send_telegram("青霞暫時無法回應，移交怡嘉處理。")
+        if is_web:
+            _write_web_reply("青霞暫時無法回應，怡嘉正在接手...")
+        else:
+            send_telegram("青霞暫時無法回應，移交怡嘉處理。")
         notify_claude_code(message, escalation_reason=reason)
         return
 
@@ -287,9 +318,12 @@ def handle_message(message: str):
     history.append({"role": "assistant",  "content": reply})
     save_history(history)
 
-    reply_file = os.path.join(SCRIPT_DIR, "telegram_reply.md")
-    with open(reply_file, "w", encoding="utf-8") as f:
-        f.write(reply)
+    if is_web:
+        _write_web_reply(reply)
+    else:
+        reply_file = os.path.join(SCRIPT_DIR, "telegram_reply.md")
+        with open(reply_file, "w", encoding="utf-8") as f:
+            f.write(reply)
 
     print(f"青霞回覆：{reply[:80]}")
 

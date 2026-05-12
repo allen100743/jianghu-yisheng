@@ -79,6 +79,11 @@
             "type": "command",
             "command": "bash .claude/hooks/validate-skill-change.sh",
             "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/security-scan.sh \"$CLAUDE_TOOL_INPUT_FILE_PATH\"",
+            "timeout": 8
           }
         ]
       }
