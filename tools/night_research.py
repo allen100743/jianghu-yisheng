@@ -12,7 +12,7 @@ import urllib.error
 
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 TELEGRAM_CHAT_ID = "5129331122"
-GEMINI_API_KEY = "REDACTED_ROTATE_THIS_KEY"
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
 DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
 DEEPSEEK_URL = "https://api.deepseek.com/chat/completions"
