@@ -139,3 +139,19 @@ $RECYCLE.BIN/
 *.msm
 *.msp
 *.lnk
+
+# Local MCP config (contains API keys)
+.mcp.json
+
+# === 《江湖一生》Runtime Files ===
+tools/conversation_history.json
+tools/telegram_notes.md
+tools/telegram_incoming.md
+tools/telegram_reply.md
+tools/producer_qa.md
+tools/qingxia_log.md
+tools/jingyi_log.md
+tools/.watchdog.lock
+tools/telegram_images/
+tools/qingxia_tasks/STOP
+production/session-state/

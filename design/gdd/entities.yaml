@@ -1,0 +1,318 @@
+﻿# 《江湖一生》跨系統實體登錄表
+# 最後更新：2026-05-12
+# 用途：確保所有 GDD 使用一致的術語、縮寫和公式常數
+# 來源：core-gdd.md Ch14、combat-system.md Ch4、resistance-system.md Ch4、status-effects-system.md Ch3-4
+
+attributes:
+  ATK:
+    chinese: "武力"
+    description: "物理攻擊力、外功招式威力"
+    initial_range: [10, 30]
+    mid_typical: [120, 180]
+    max: 1000
+    referenced_in:
+      - core-gdd.md (Ch14 屬性對照表、綜合評分)
+      - combat-system.md (傷害公式、Skill_Power計算)
+      - jianghu-ranking-system.md (綜合評分)
+
+  NRI:
+    chinese: "內力"
+    description: "內功強度、特殊招式消耗、內傷抗性。注意：NRI ≠ intelligence"
+    initial_range: [5, 20]
+    mid_typical: [80, 140]
+    max: 1000
+    referenced_in:
+      - core-gdd.md (Ch14 MP公式、老化衰減)
+      - combat-system.md (MP計算)
+      - resistance-system.md (毒抗、內傷抗、眩暈抗、點穴抗)
+
+  BOD:
+    chinese: "體魄"
+    description: "生命上限、負重、疲勞抗性、壽命基礎"
+    initial_range: [30, 50]
+    mid_typical: [150, 220]
+    max: 800
+    referenced_in:
+      - core-gdd.md (Ch14 HP公式、壽命公式14.3)
+      - combat-system.md (格擋減免%、HP計算、SP計算)
+      - resistance-system.md (毒抗、內傷抗、眩暈抗)
+      - time-aging-system.md (壽命修飾詞)
+
+  AGL:
+    chinese: "輕功"
+    description: "移動速度、閃避率、探索效率"
+    initial_range: [10, 25]
+    mid_typical: [100, 160]
+    max: 900
+    referenced_in:
+      - core-gdd.md (Ch14 閃避率公式)
+      - combat-system.md (閃避率、SP計算)
+      - resistance-system.md (火抗V2、眩暈抗)
+
+  APT:
+    chinese: "資質"
+    description: "學習武學速度、突破瓶頸機率"
+    initial_range: [15, 35]
+    mid_typical: [80, 150]
+    max: 700
+    referenced_in:
+      - core-gdd.md (Ch14 境界稱號評分係數)
+      - jianghu-ranking-system.md (天賦係數、綜合評分)
+      - martial-arts-system.md (武學熟練度倍率)
+
+  WIS:
+    chinese: "悟性"
+    description: "戰鬥悟道機率、自創武功靈感、破解機關"
+    initial_range: [10, 20]
+    mid_typical: [60, 120]
+    max: 600
+    noted: "老年反而+1%/年老化加成（越老越有悟性）"
+    referenced_in:
+      - core-gdd.md (Ch14 武學突破、老化規則)
+      - resistance-system.md (點穴抗公式)
+
+  REP:
+    chinese: "名聲"
+    description: "社會影響力、NPC好感度、世界感知傳播速度"
+    initial_range: [0, 10]
+    mid_typical: [30, 100]
+    max: 1000
+    noted: "BOD/REP/APT 不受老化衰減"
+    referenced_in:
+      - core-gdd.md (Ch14 世界感知公式核心、門派門檻)
+      - jianghu-ranking-system.md (綜合評分)
+      - world-awareness-system.md (傳播公式)
+
+formulas:
+  # ── 江湖排名 ──────────────────────────────────────────────
+  jianghu_combat_score:
+    chinese: "江湖戰力評分"
+    status: "[UNLOCKED] 權重待數值模擬驗證 + 製作人簽核"
+    formula: "ATK×1.2 + NRI×1.0 + BOD×0.9 + AGL×1.1 + WIS×1.0 + APT×0.6 + REP×0.3"
+    purpose: "用於江湖稱號排名（新丁/小有名氣/高手/宗師）。反映當前實戰能力，APT 降權避免刷潛力提排名。"
+    result_type: "整數（floor）"
+    thresholds:  # [UNLOCKED] 需根據新公式重新校準
+      江湖新丁: "0–500"
+      小有名氣: "501–1500"
+      武林高手: "1501–3500"
+      一代宗師: "3501+"
+    referenced_in:
+      - core-gdd.md (Ch14.2)
+      - jianghu-ranking-system.md
+
+  character_potential:
+    chinese: "角色潛質評分"
+    status: "[UNLOCKED] 權重待數值模擬驗證 + 製作人簽核"
+    formula: "APT×1.5 + WIS×1.2 + NRI×0.8 + BOD×0.7 + REP×0.5"
+    purpose: "僅顯示於角色面板，不參與江湖排名。反映角色後勁與成長潛力，可用於奇遇/傳承系統的判定門檻。"
+    result_type: "整數（floor）"
+    referenced_in:
+      - core-gdd.md (Ch14.2)
+
+  # ── 基礎資源 ─────────────────────────────────────────────
+  evasion_rate:
+    status: "[LOCKED] 2026-05-12 v1.0 — 製作人確認"
+    formula: "floor(AGL / (AGL + 500) × 100)"
+    unit: "百分比（整數）"
+    notes: "UI顯示取整數，不顯示小數"
+    referenced_in:
+      - core-gdd.md (Ch14)
+      - combat-system.md (4.1)
+
+  hp:
+    status: "[LOCKED] 2026-05-12 v1.0 — 製作人確認"
+    formula: "BOD × 5 + 50"
+    referenced_in:
+      - core-gdd.md (Ch14)
+      - combat-system.md (4.1)
+
+  mp:
+    status: "[LOCKED] 2026-05-12 v1.0 — 製作人確認"
+    formula: "NRI × 3 + 20"
+    referenced_in:
+      - core-gdd.md (Ch14)
+      - combat-system.md (4.1)
+
+  sp:
+    status: "[LOCKED] 2026-05-12 v1.0 — 製作人確認"
+    formula: "BOD × 2 + AGL"
+    referenced_in:
+      - combat-system.md (4.1)
+
+  # ── 戰鬥傷害 ─────────────────────────────────────────────
+  base_damage:
+    status: "[LOCKED] 2026-05-12 v1.0 — 製作人確認"
+    formula: "Skill_Power × (1 + ATK/500) × (1 + Mastery_Bonus)"
+    variables:
+      Skill_Power: "武學技能本身的威力係數（入門30-60，強化外功60-120，心法80-150，絕技200-300）"
+      Mastery_Bonus: "熟練度加成：入門0% / 熟練20% / 小成40% / 大成70% / 圓滿100%"
+    referenced_in:
+      - combat-system.md (3.6, 4.2)
+
+  damage_reduction_stack:
+    status: "[LOCKED] 2026-05-12 v1.0 — 製作人確認"
+    chinese: "護體減傷層級"
+    formula: "護體係數 = Π(1 - reduction_i)"
+    notes: "乘法疊加，最低傷害保留15%（護體係數下限0.15）"
+    example: "減傷A=30%，減傷B=20% → 0.7×0.8=0.56，即減傷44%"
+    referenced_in:
+      - combat-system.md (3.6)
+
+  final_damage:
+    status: "[LOCKED] 2026-05-12 v1.0 — 製作人確認"
+    chinese: "最終傷害"
+    formula: "floor(base_damage × max(護體係數, 0.15) × (1 + 增傷%))"
+    notes: "最終傷害不得低於基礎傷害的15%"
+    referenced_in:
+      - combat-system.md (4.2)
+
+  block_reduction:
+    status: "[LOCKED] 2026-05-12 v1.0 — 製作人確認"
+    chinese: "格擋減傷率"
+    formula: "50 + (BOD/1000) × 30"
+    unit: "百分比"
+    range: "[50%, 80%] 對應 BOD 0→1000"
+    referenced_in:
+      - combat-system.md (4.2)
+
+  # ── 狀態與修飾詞 ──────────────────────────────────────────
+  new_severity:
+    status: "[LOCKED] 2026-05-12 v1.0 — 製作人確認"
+    chinese: "傷勢累積公式"
+    formula: "clamp(current + incoming × (1.0 - current × 0.5), 0.0, 1.0)"
+    description: "同類型新傷遞減累加。傷勢越高，額外傷害越難堆疊（防止瞬間死亡）"
+    variables:
+      current: "當前 severity 值（0.0–1.0）"
+      incoming: "本次造成的 severity 增量"
+    referenced_in:
+      - status-effects-system.md (3.3)
+
+  modifier_stack:
+    status: "[LOCKED] 2026-05-12 v1.0 — 製作人確認"
+    chinese: "屬性修飾詞疊加"
+    formula: "clamp((base + Σflat_modifiers) × Π(1 + pct_modifier_i), 0, attribute_max)"
+    description: "屬性修飾詞疊加總公式（HOI4風格）"
+    referenced_in:
+      - status-effects-system.md (3.2)
+      - design-canon.md (原則2)
+
+  # ── 抗性 ─────────────────────────────────────────────────
+  resistance_base:
+    status: "[LOCKED] 2026-05-12 v1.0 — 製作人確認（MVP公式）"
+    chinese: "基礎抗性值"
+    formulas:
+      毒抗: "floor(BOD × 0.5 + NRI × 0.3)"
+      寒抗: "floor(BOD × 0.6 + NRI × 0.2)  # V2預留"
+      火抗: "floor(BOD × 0.4 + AGL × 0.4)  # V2預留"
+      內傷抗: "floor(NRI × 0.6 + BOD × 0.3)"
+      眩暈抗: "floor(NRI × 0.5 + AGL × 0.3)"
+      點穴抗: "floor(NRI × 0.7 + WIS × 0.2)"
+    mvp_active: [毒抗, 內傷抗, 眩暈抗, 點穴抗]
+    v2_reserved: [寒抗, 火抗]
+    referenced_in:
+      - resistance-system.md (4.1)
+
+  resistance_check:
+    status: "[LOCKED] 2026-05-12 v1.0 — 製作人確認"
+    chinese: "抗性檢定"
+    formula: "檢定結果 = 對應抗性值 + ROLL(0, 20)"
+    logic: "if 檢定結果 ≥ DC: 完全抵抗；else: 效果強度 = DC - 檢定結果"
+    referenced_in:
+      - resistance-system.md (4.2)
+
+  # ── 壽命與時間 ────────────────────────────────────────────
+  lifespan:
+    status: "[LOCKED] 2026-05-12 v1.0 — 製作人確認"
+    chinese: "壽命公式"
+    formula: |
+      BASE_LIFESPAN = 62
+        + floor(min(BOD, 100) × 0.08)
+        + floor(max(min(BOD, 400)-100, 0) × 0.025)
+        + floor(max(BOD-400, 0) × 0.01)
+    range_example:
+      BOD_50: 66
+      BOD_200: 72
+      BOD_500: 72
+    referenced_in:
+      - time-aging-system.md
+      - core-gdd.md (Ch14.3)
+
+  world_awareness_speed:
+    status: "[LOCKED] 2026-05-12 v1.0 — 製作人確認"
+    chinese: "消息傳播速度"
+    formula: "30里/天 × (1 + REP/100)"
+    referenced_in:
+      - core-gdd.md (Ch15)
+      - world-awareness-system.md
+
+  world_awareness_intensity:
+    status: "[LOCKED] 2026-05-12 v1.0 — 製作人確認"
+    chinese: "消息強度"
+    formula: "100 - floor(距離 × 100 / (100 + REP/2))"
+    unit: "整數%，超出範圍歸0"
+    referenced_in:
+      - core-gdd.md (Ch15)
+
+currencies:
+  silver:
+    chinese: "銀兩"
+    description: "主要流通貨幣，角色屬性欄獨立數值，不佔庫存格"
+    referenced_in:
+      - inventory-management-system.md
+
+  faction_contribution:
+    chinese: "門派貢獻值 / 功勛值"
+    description: "在門派藏書閣兌換武學的專用貨幣"
+    referenced_in:
+      - martial-arts-system.md
+      - task-system.md
+
+quality_tiers:
+  weapons_armor:
+    tiers: ["凡品", "精良", "利器", "寶器", "神兵", "絕世", "天工"]
+    colors: ["白", "綠", "藍", "紫", "橙", "紅", "金"]
+    count: 7
+    referenced_in:
+      - inventory-management-system.md
+      - martial-arts-system.md
+
+  talents:
+    tiers: ["綠品", "藍品", "紫品", "橙品", "紅品"]
+    colors: ["綠", "藍", "紫", "橙", "紅"]
+    count: 5
+    note: "天賦從綠品起，無白品（凡品）"
+    upgrade_paths:
+      - "地點兌換（指定場所 + 消耗材料）"
+      - "成就解鎖（特定事件觸發永久升品）"
+    referenced_in:
+      - talent-system.md
+
+skill_slots:
+  外功槽:
+    count: 4
+    restriction: "只能裝備外功類武學"
+  心法槽:
+    count: 2
+    restriction: "只能裝備內功心法類武學"
+  絕技槽:
+    count: 1
+    restriction: "只能裝備絕技類武學，每戰限用"
+  輕功槽:
+    count: 1
+    restriction: "只能裝備輕功類武學"
+  total: 8
+  referenced_in:
+    - combat-system.md (3.5)
+    - martial-arts-system.md
+
+severity_thresholds:
+  description: "所有連續severity狀態的通用閾值定義（RimWorld風格）"
+  stage_1: 0.3
+  stage_2: 0.6
+  stage_3: 0.9
+  lethal: 1.0
+  daily_cap: "+0.15/天（單一來源最高累加上限）"
+  natural_recovery: "-0.01/天（基準，具體值見各狀態定義）"
+  referenced_in:
+    - status-effects-system.md (3.1)
+    - design-canon.md (原則1)
